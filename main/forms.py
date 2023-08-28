@@ -2,7 +2,7 @@ from django import forms
 from froala_editor.widgets import FroalaEditor
 from .models import Announcement, Assignment, Material
 
-
+# for announce the details
 class AnnouncementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AnnouncementForm, self).__init__(*args, **kwargs)
