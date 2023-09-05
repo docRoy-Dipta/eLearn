@@ -87,10 +87,11 @@ WSGI_APPLICATION = 'eLMS.wsgi.application'
  DATABASES = {
      'default': {
          'ENGINE': 'django.db.backends.mysql',
-         'NAME': 'elms',
-         'HOST': 'localhost',
-         'USER': 'root',
-         'PASSWORD': '',
+         'NAME': 'railway',
+         'HOST': 'containers-us-west-201.railway.app',
+         'USER': 'postgres',
+         'PASSWORD': '9Y0dJNLhJ5M3Usi2Hn7b',
+         'PORT': '8075',
      }
  }
 
