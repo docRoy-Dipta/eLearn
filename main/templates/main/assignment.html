@@ -35,7 +35,7 @@
             <div class="fw-bold text-start mb-3">Create Assignment</div>
             <div class="form-group">
                <form action="" method="POST" enctype="multipart/form-data">
-                  <!-- {% csrf_token %} -->
+                  {% csrf_token %}
                   {% for field in form %}
                   <div class="mb-3">
                      {{ field.label_tag }}

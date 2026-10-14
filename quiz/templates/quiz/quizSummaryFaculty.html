@@ -79,7 +79,7 @@
 {% else %}
 <div class="d-flex justify-content-center my-3">
    <form method="post" action=" {% url 'quizSummary' course.code quiz.id %} ">
-      <!-- {% csrf_token %} -->
+      {% csrf_token %}
       <button class="btn btn-sm btn-primary" type="submit"> <span class="px-1">Publish marks</span> </button>
    </form>
 </div>

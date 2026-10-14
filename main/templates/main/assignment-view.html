@@ -83,7 +83,7 @@
                <td class="text-center" style="min-width: 150px;">
                   <form action="{% url 'gradeSubmission' course.code assignment.id submission.id %}"
                      method="post">
-                     <!-- {% csrf_token %} -->
+                     {% csrf_token %}
                      <div class="d-flex justify-content-center">
                         <div class="form-group">
                            <input class="form-control text-center" type="number" placeholder="Marks" name="marks" id="marks"
@@ -98,7 +98,7 @@
                <td class="text-center" style="min-width: 150px;">
                <form action="{% url 'gradeSubmission' course.code assignment.id submission.id %}"
                   method="post">
-               <!-- {% csrf_token %} -->
+               {% csrf_token %}
                <div class="d-flex justify-content-center">
                <div class="form-group">
                <input class="form-control text-center" type="number" placeholder="Marks" name="marks" id="marks"

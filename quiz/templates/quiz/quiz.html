@@ -37,7 +37,7 @@
       Create Quiz
       </span>
       <form action="{% url 'quiz' course.code %}" method="POST">
-         <!-- {% csrf_token %} -->
+         {% csrf_token %}
          <div class="mb-3 mt-3 fw-bold">
             <label for="title" class="form-label">Quiz Title</label>
             <input type="text" class="form-control" id="title" name='title' required>

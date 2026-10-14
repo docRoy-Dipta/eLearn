@@ -19,7 +19,7 @@
          <div style="min-height:85vh" class="row justify-content-center align-items-center">
             <div class="col-lg-5 col-sm-12 p-5 rounded shadow">
                <form action="{% url 'changePhoto' %}" method="post" enctype="multipart/form-data">
-                  <!-- {% csrf_token %} -->
+                  {% csrf_token %}
                   <div class="text-center">
                      <h5 class="mb-3 fw-bold">Change Profile Picture</h5>
                   </div>

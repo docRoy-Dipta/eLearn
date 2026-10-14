@@ -1,0 +1,20 @@
+env/
+.venv/
+.venv-recovery/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+recovery_schema.sqlite3
+recovery_schema.sqlite3-*
+staticfiles_build/
+.vercel/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local recovery and temporary backups
+csrf_template_backup_*/
+*.before_*

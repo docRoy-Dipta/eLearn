@@ -27,7 +27,7 @@
    <div class="row justify-content-center m-3 align-self-center w-100">
       <div class="col-lg-4 col-sm-12 col-md-6 border p-3 rounded">
          <form action="" method="post">
-            <!-- {% csrf_token %} -->
+            {% csrf_token %}
             <div class="mb-3">
                <label for="key" class="form-label">Enter the access key: </label>
                <input type="number" class="form-control" id="key" name="key" min="0" placeholder="e.g. 1234">

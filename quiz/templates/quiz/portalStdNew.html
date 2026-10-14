@@ -132,7 +132,7 @@
 <div class="container">
    <div id="questions">
       <form action="{% url 'studentAnswer' course.code quiz.id %}" method="post">
-         <!-- {% csrf_token %} -->
+         {% csrf_token %}
          {% for question in questions  %}
          <div class="border border-warning mb-3 bg-warning bg-opacity-10 rounded p-3">
             <div class="d-flex justify-content-between border-bottom mb-3">

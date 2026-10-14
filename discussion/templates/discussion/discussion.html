@@ -48,7 +48,7 @@
       <div class="d-flex flex-column m-3">
          {% if faculty %}
          <form action="{% url 'send_fac' course.code faculty.faculty_id %}" method="POST">
-            <!-- {% csrf_token %} -->
+            {% csrf_token %}
             <div class="input-group mb-3 p-3">
                {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
                {{ form.content }}
@@ -57,7 +57,7 @@
          </form>
          {% else %}
          <form action="{% url 'send' course.code student.student_id %}" method="POST">
-            <!-- {% csrf_token %} -->
+            {% csrf_token %}
             <div class="input-group mb-3 p-3">
                {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
                {{ form.content }}

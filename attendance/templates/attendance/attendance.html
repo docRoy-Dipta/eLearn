@@ -50,7 +50,7 @@
    <div class="d-flex rounded flex-row p-2 border justify-content-end" style="background-color:rgb(250,250,250)">
       <div>
          <form method="POST" action="{% url 'createRecord' course.code %}">
-            <!-- {% csrf_token %}  -->
+            {% csrf_token %}
             <input name="dateCreate" type="date" class="border border-secondary px-2" required>
             <button type="submit" class="btn btn-sm btn-primary mx-1 px-3">
             Create Attendance Record
@@ -65,7 +65,7 @@
    </p>
    <div>
       <form action="{% url 'loadAttendance' course.code %}"  method="post">
-         <!-- {% csrf_token %} -->
+         {% csrf_token %}
          <input type="date" name="date" required>
          <button type="submit" class="btn btn-sm btn-success">Load</button>
       </form>
@@ -83,7 +83,7 @@
       </thead>
       <tbody class="table-group-divider">
          <form action="{% url 'submitAttendance' course.code %}"  method="post">
-            <!-- {% csrf_token %} -->
+            {% csrf_token %}
             {% for attendance in attendance %}
             <tr class="text-center">
                <td><img class="align-self-baseline rounded-circle" src="/media/{{ attendance.student.photo}}" alt="image"

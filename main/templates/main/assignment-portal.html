@@ -72,7 +72,7 @@
    {% if time < assignment.deadline and not submission.file %}
    <form action="{% url 'addSubmission' course.code assignment.id %}" method="POST" enctype="multipart/form-data"
       id="gradeForm" name="gradeForm">
-      <!-- {% csrf_token %} -->
+      {% csrf_token %}
       <div id="fileSubmit">
          <div class="input-group mb-3 p-2">
             <input type="file" class="form-control shadow-sm rounded" id="file" name="file" required>

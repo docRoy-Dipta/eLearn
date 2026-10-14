@@ -35,7 +35,7 @@
             <div class="fw-bold mb-3 text-start">Post Announcement</div>
             <div class="from-group">
                <form method="post" enctype="multipart/form-data">
-                  <!-- {% csrf_token %} -->
+                  {% csrf_token %}
                   {{ form.as_p }}
                   <!-- submit button -->
                   <div class="d-flex justify-content-end bg-light border p-2 rounded">
