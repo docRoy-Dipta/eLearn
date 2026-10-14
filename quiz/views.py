@@ -162,46 +162,104 @@ def studentAnswer(request, code, quiz_id):
         return redirect('std_login')
 
 
+
 def quizResult(request, code, quiz_id):
-    if is_student_authorised(request, code):
-        course = Course.objects.get(code=code)
-        quiz = Quiz.objects.get(id=quiz_id)
-        questions = Question.objects.filter(quiz=quiz)
-        try:
-            student = Student.objects.get(
-                student_id=request.session['student_id'])
-            student_answers = StudentAnswer.objects.filter(
-                student=student, quiz=quiz)
-            total_marks_obtained = 0
-            for student_answer in student_answers:
-                total_marks_obtained += student_answer.question.marks if student_answer.answer == student_answer.question.answer else 0
-            quiz.total_marks_obtained = total_marks_obtained
-            quiz.total_marks = 0
-            for question in questions:
-                quiz.total_marks += question.marks
-            quiz.percentage = (total_marks_obtained / quiz.total_marks) * 100
-            quiz.percentage = round(quiz.percentage, 2)
-        except:
-            quiz.total_marks_obtained = 0
-            quiz.total_marks = 0
-            quiz.percentage = 0
-
-        for question in questions:
-            student_answer = StudentAnswer.objects.get(
-                student=student, question=question)
-            question.student_answer = student_answer.answer
-
-        student_answers = StudentAnswer.objects.filter(
-            student=student, quiz=quiz)
-        for student_answer in student_answers:
-            quiz.time_taken = student_answer.created_at - quiz.start
-            quiz.time_taken = quiz.time_taken.total_seconds()
-            quiz.time_taken = round(quiz.time_taken, 2)
-            quiz.submission_time = student_answer.created_at.strftime(
-                "%a, %d-%b-%y at %I:%M %p")
-        return render(request, 'quiz/quizResult.html', {'course': course, 'quiz': quiz, 'questions': questions, 'student': student})
-    else:
+    if not is_student_authorised(request, code):
         return redirect('std_login')
+
+    course = Course.objects.filter(code=code).first()
+    if course is None:
+        return redirect('std_login')
+
+    # Ensure the quiz belongs to the course in the URL.
+    quiz = Quiz.objects.filter(
+        id=quiz_id,
+        course=course
+    ).first()
+
+    if quiz is None:
+        return redirect('myQuizzes', code=code)
+
+    # Safely retrieve the logged-in student.
+    student_id = request.session.get('student_id')
+    student = Student.objects.filter(
+        student_id=student_id
+    ).first()
+
+    if student is None:
+        return redirect('std_login')
+
+    questions = list(Question.objects.filter(quiz=quiz))
+
+    # Only use answers belonging to this student and this quiz.
+    student_answers = list(
+        StudentAnswer.objects.filter(
+            student=student,
+            quiz=quiz,
+            question__quiz=quiz
+        ).select_related('question').order_by('created_at')
+    )
+
+    # Index saved answers by question ID.
+    answers_by_question = {
+        answer.question_id: answer
+        for answer in student_answers
+    }
+
+    # Calculate marks from the saved answers.
+    quiz.total_marks_obtained = sum(
+        answer.question.marks
+        for answer in student_answers
+        if answer.answer == answer.question.answer
+    )
+
+    quiz.total_marks = sum(
+        question.marks for question in questions
+    )
+
+    # Avoid division by zero for empty or zero-mark quizzes.
+    if quiz.total_marks > 0:
+        quiz.percentage = round(
+            quiz.total_marks_obtained / quiz.total_marks * 100,
+            2
+        )
+    else:
+        quiz.percentage = 0
+
+    # Show an empty answer for unanswered questions.
+    for question in questions:
+        answer = answers_by_question.get(question.id)
+        question.student_answer = answer.answer if answer else ''
+
+    # Calculate elapsed time from the quiz start to the
+    # latest recorded answer, if any answers exist.
+    if student_answers:
+        latest_answer = student_answers[-1]
+
+        elapsed_seconds = (
+            latest_answer.created_at - quiz.start
+        ).total_seconds()
+
+        quiz.time_taken = round(max(0, elapsed_seconds), 2)
+
+        quiz.submission_time = latest_answer.created_at.strftime(
+            "%a, %d-%b-%y at %I:%M %p"
+        )
+    else:
+        quiz.time_taken = 0
+        quiz.submission_time = None
+
+    return render(
+        request,
+        'quiz/quizResult.html',
+        {
+            'course': course,
+            'quiz': quiz,
+            'questions': questions,
+            'student': student,
+        }
+    )
+
 
 
 def quizSummary(request, code, quiz_id):
