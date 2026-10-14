@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Dashboard | eLearn</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Inter, "Segoe UI", Arial, sans-serif; background: #f4f7fc; color: #18243a; }
+        .layout { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
+        .sidebar { background: #17233b; color: white; padding: 30px 20px; }
+        .brand { font-size: 25px; font-weight: 800; margin-bottom: 35px; }
+        .brand span { color: #9daaff; }
+        .label { color: #8f9db8; font-size: 11px; font-weight: 800; letter-spacing: 1.4px; margin: 25px 10px 12px; }
+        .nav { display: block; color: #e6ebf7; text-decoration: none; padding: 13px 12px; border-radius: 9px; margin: 5px 0; }
+        .nav:hover, .nav.active { background: #354568; }
+        .main { padding: 34px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 30px; }
+        .eyebrow { color: #465cf5; font-size: 12px; font-weight: 800; letter-spacing: 1.4px; }
+        h1 { font-size: clamp(26px, 4vw, 36px); margin: 8px 0; }
+        .muted { color: #68758a; line-height: 1.6; }
+        .button { text-decoration: none; display: inline-block; background: #465cf5; color: white; padding: 12px 16px; border-radius: 9px; font-weight: 700; font-size: 13px; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 17px; }
+        .card, .section { background: white; border: 1px solid #e3e8f2; border-radius: 15px; padding: 22px; box-shadow: 0 10px 30px #192b5308; }
+        .stat-label { color: #68758a; font-size: 13px; }
+        .number { font-size: 32px; font-weight: 800; margin-top: 12px; }
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+        h2 { font-size: 17px; margin: 0 0 18px; }
+        .manage-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .manage { border: 1px solid #e3e8f2; padding: 14px; border-radius: 10px; color: #25344f; text-decoration: none; font-weight: 650; font-size: 13px; }
+        .manage:hover { border-color: #465cf5; color: #465cf5; }
+        .record { padding: 13px 0; border-bottom: 1px solid #edf0f6; display: flex; justify-content: space-between; gap: 12px; }
+        .record:last-child { border-bottom: 0; }
+        .record-name { font-weight: 650; font-size: 14px; }
+        .record-meta { color: #68758a; font-size: 12px; margin-top: 4px; }
+        .footer { color: #68758a; font-size: 12px; margin-top: 28px; }
+        @media (max-width: 1000px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .content-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { padding: 18px; }
+            .brand { margin-bottom: 15px; }
+            .label { margin-top: 12px; }
+            .main { padding: 23px 15px; }
+            .topbar { align-items: flex-start; flex-direction: column; }
+        }
+        @media (max-width: 420px) { .stats { grid-template-columns: 1fr 1fr; gap: 10px; } .card { padding: 16px; } .number { font-size: 27px; } .manage-list { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">e<span>Learn</span></div>
+        <div class="label">ADMINISTRATION</div>
+        <a class="nav active" href="{% url 'admin_dashboard' %}">Dashboard overview</a>
+        <a class="nav" href="/admin/main/student/">Manage students</a>
+        <a class="nav" href="/admin/main/faculty/">Manage faculty</a>
+        <a class="nav" href="/admin/main/course/">Manage courses</a>
+        <a class="nav" href="/admin/main/department/">Manage departments</a>
+        <div class="label">ACCOUNT</div>
+        <a class="nav" href="/admin/">Django admin</a>
+        <a class="nav" href="{% url 'std_login' %}">Back to sign in</a>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <div class="eyebrow">CONTROL CENTER</div>
+                <h1>Admin dashboard</h1>
+                <p class="muted">A snapshot of your eLearn academic workspace.</p>
+            </div>
+            <a class="button" href="/admin/">Open full admin</a>
+        </div>
+
+        <section class="stats">
+            <div class="card"><div class="stat-label">Registered students</div><div class="number">{{ student_count }}</div></div>
+            <div class="card"><div class="stat-label">Faculty members</div><div class="number">{{ faculty_count }}</div></div>
+            <div class="card"><div class="stat-label">Departments</div><div class="number">{{ department_count }}</div></div>
+            <div class="card"><div class="stat-label">Courses</div><div class="number">{{ course_count }}</div></div>
+        </section>
+
+        <div class="content-grid">
+            <section class="section">
+                <h2>Management shortcuts</h2>
+                <div class="manage-list">
+                    <a class="manage" href="/admin/main/student/">Manage students ↗</a>
+                    <a class="manage" href="/admin/main/faculty/">Manage faculty ↗</a>
+                    <a class="manage" href="/admin/main/course/">Manage courses ↗</a>
+                    <a class="manage" href="/admin/main/department/">Manage departments ↗</a>
+                </div>
+                <p class="muted">Use these links to add, review, and update records in the existing Django admin.</p>
+            </section>
+
+            <section class="section">
+                <h2>Recently registered students</h2>
+                {% for student in recent_students %}
+                    <div class="record">
+                        <div><div class="record-name">{{ student.name }}</div><div class="record-meta">{{ student.department.name }}</div></div>
+                        <div class="record-meta">ID {{ student.student_id }}</div>
+                    </div>
+                {% empty %}
+                    <p class="muted">No student accounts yet.</p>
+                {% endfor %}
+            </section>
+
+            <section class="section">
+                <h2>Faculty directory</h2>
+                {% for faculty in recent_faculty %}
+                    <div class="record">
+                        <div><div class="record-name">{{ faculty.name }}</div><div class="record-meta">{{ faculty.department.name }}</div></div>
+                        <div class="record-meta">ID {{ faculty.faculty_id }}</div>
+                    </div>
+                {% empty %}
+                    <p class="muted">No faculty accounts yet.</p>
+                {% endfor %}
+            </section>
+        </div>
+        <div class="footer">© {% now "Y" %} eLearn · Administrator workspace</div>
+    </main>
+</div>
+</body>
+</html>

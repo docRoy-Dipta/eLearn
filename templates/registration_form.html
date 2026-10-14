@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page_title }} | eLearn</title>
+    <style>
+        :root {
+            --ink: #18243a;
+            --muted: #68758a;
+            --brand: #465cf5;
+            --line: #e3e8f2;
+            --surface: #ffffff;
+            --background: #f4f7fc;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--ink); background: var(--background);
+        }
+        .layout { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
+        .sidebar {
+            background: #17233b; color: white; padding: 32px 22px;
+        }
+        .brand { font-size: 25px; font-weight: 800; margin-bottom: 8px; }
+        .brand span { color: #9daaff; }
+        .side-copy { color: #b8c4dc; font-size: 13px; line-height: 1.7; }
+        .nav-label {
+            margin: 38px 0 12px; color: #8f9db8;
+            font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+        }
+        .nav-link {
+            display: block; text-decoration: none; color: #e6ebf7;
+            padding: 13px 14px; border-radius: 10px; margin: 5px 0;
+        }
+        .nav-link.active { background: #354568; color: white; }
+        .main { padding: 34px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 30px; }
+        .eyebrow { color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: 1.4px; }
+        h1 { margin: 8px 0; font-size: clamp(25px, 4vw, 34px); }
+        .subtitle { color: var(--muted); margin: 0; line-height: 1.6; }
+        .panel {
+            max-width: 760px; background: var(--surface); padding: 30px;
+            border: 1px solid var(--line); border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(25, 43, 83, .05);
+        }
+        .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .field { min-width: 0; }
+        .field label { display: block; font-weight: 650; font-size: 13px; margin-bottom: 8px; }
+        .field input, .field select {
+            width: 100%; min-height: 46px; padding: 11px 12px;
+            border: 1px solid #d9e0ec; border-radius: 9px;
+            font: inherit; background: white; color: var(--ink);
+        }
+        .field input:focus, .field select:focus {
+            outline: 3px solid #465cf526; border-color: var(--brand);
+        }
+        .help { color: var(--muted); font-size: 12px; margin-top: 6px; }
+        .errors { color: #b42318; font-size: 12px; margin-top: 6px; }
+        .form-errors { color: #b42318; background: #fff1f0; border-radius: 9px; padding: 12px; margin-bottom: 18px; }
+        .actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 26px; }
+        .submit {
+            border: 0; border-radius: 10px; padding: 14px 22px;
+            background: var(--brand); color: white; font-size: 14px;
+            font-weight: 750; cursor: pointer;
+        }
+        .text-link { color: var(--brand); font-weight: 650; text-decoration: none; }
+        .notice { max-width: 760px; padding: 13px 16px; border-radius: 10px; margin-bottom: 18px; background: #eaf8ef; color: #17643a; }
+        .footer { color: var(--muted); font-size: 12px; margin-top: 28px; }
+        @media (max-width: 760px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { padding: 18px 20px; }
+            .nav-label { margin-top: 18px; }
+            .side-copy { display: none; }
+            .main { padding: 23px 16px; }
+            .panel { padding: 22px 17px; }
+        }
+        @media (max-width: 480px) {
+            .fields { grid-template-columns: 1fr; }
+            .topbar { align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">e<span>Learn</span></div>
+        <p class="side-copy">A connected workspace for teaching, learning, and academic progress.</p>
+        <div class="nav-label">GET STARTED</div>
+        <a class="nav-link" href="{% url 'std_login' %}">Sign in</a>
+        <a class="nav-link {% if account_type == 'Student' %}active{% endif %}" href="{% url 'student_register' %}">Student registration</a>
+        <a class="nav-link {% if account_type == 'Faculty' %}active{% endif %}" href="{% url 'faculty_register' %}">Faculty registration</a>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <div class="eyebrow">ELEARN ACCOUNT SETUP</div>
+                <h1>{{ page_title }}</h1>
+                <p class="subtitle">{{ subtitle }}</p>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="notice">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <section class="panel">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="fields">
+                    {% for field in form %}
+                        <div class="field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+                            {% if field.errors %}<div class="errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="actions">
+                    <button class="submit" type="submit">Create {{ account_type }} account</button>
+                    <a class="text-link" href="{% url login_url_name %}">Already registered? Sign in</a>
+                </div>
+            </form>
+        </section>
+        <div class="footer">© {% now "Y" %} eLearn · Education, thoughtfully connected.</div>
+    </main>
+</div>
+</body>
+</html>

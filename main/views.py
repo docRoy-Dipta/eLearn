@@ -1,6 +1,7 @@
 import datetime
 from django.shortcuts import redirect, render
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password, identify_hasher, make_password
 from .models import Student, Course, Announcement, Assignment, Submission, Material, Faculty, Department
 from django.template.defaulttags import register
 from django.db.models import Count, Q
@@ -35,36 +36,64 @@ def is_faculty_authorised(request, code):
 
 
 # Custom Login page for both student and faculty
+def _verify_custom_password(raw_password, stored_password):
+    """Verify a Django hash or temporarily accept a legacy plaintext password."""
+    try:
+        identify_hasher(stored_password)
+    except (ValueError, TypeError):
+        return raw_password == stored_password, True
+
+    return check_password(raw_password, stored_password), False
+
+
 def std_login(request):
     error_messages = []
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = LoginForm(request.POST)
 
         if form.is_valid():
-            id = form.cleaned_data['id']
-            password = form.cleaned_data['password']
+            account_id = form.cleaned_data["id"]
+            raw_password = form.cleaned_data["password"]
 
-            if Student.objects.filter(student_id=id, password=password).exists():
-                request.session['student_id'] = id
-                return redirect('myCourses')
-            elif Faculty.objects.filter(faculty_id=id, password=password).exists():
-                request.session['faculty_id'] = id
-                return redirect('facultyCourses')
-            else:
-                error_messages.append('Invalid login credentials.')
+            student = Student.objects.filter(student_id=account_id).first()
+            if student:
+                valid, is_legacy = _verify_custom_password(
+                    raw_password, student.password
+                )
+                if valid:
+                    if is_legacy:
+                        student.password = make_password(raw_password)
+                        student.save(update_fields=["password"])
+                    request.session["student_id"] = student.student_id
+                    return redirect("myCourses")
+
+            faculty = Faculty.objects.filter(faculty_id=account_id).first()
+            if faculty:
+                valid, is_legacy = _verify_custom_password(
+                    raw_password, faculty.password
+                )
+                if valid:
+                    if is_legacy:
+                        faculty.password = make_password(raw_password)
+                        faculty.save(update_fields=["password"])
+                    request.session["faculty_id"] = faculty.faculty_id
+                    return redirect("facultyCourses")
+
+            error_messages.append("Invalid login credentials.")
         else:
-            error_messages.append('Invalid form data.')
+            error_messages.append("Invalid form data.")
     else:
         form = LoginForm()
 
-    if 'student_id' in request.session:
-        return redirect('/my/')
-    elif 'faculty_id' in request.session:
-        return redirect('/facultyCourses/')
+    if "student_id" in request.session:
+        return redirect("/my/")
+    elif "faculty_id" in request.session:
+        return redirect("/facultyCourses/")
 
-    context = {'form': form, 'error_messages': error_messages}
-    return render(request, 'login_page.html', context)
+    context = {"form": form, "error_messages": error_messages}
+    return render(request, "login_page.html", context)
+
 
 # Clears the session on logout
 

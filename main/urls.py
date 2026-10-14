@@ -1,5 +1,6 @@
-from django.urls import path
+﻿from django.urls import path
 from . import views
+from . import registration_views
 
 urlpatterns = [
     path('', views.std_login, name='std_login'),
@@ -49,4 +50,12 @@ urlpatterns = [
          name='changePhotoFaculty'),
     path('search/', views.search, name='search'),
     path('error/', views.error, name='error'),
+
+    # New registration and administration pages
+    path('register/student/', registration_views.student_register,
+         name='student_register'),
+    path('register/faculty/', registration_views.faculty_register,
+         name='faculty_register'),
+    path('dashboard/', registration_views.admin_dashboard,
+         name='admin_dashboard'),
 ]
