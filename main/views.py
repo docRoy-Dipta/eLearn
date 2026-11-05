@@ -663,45 +663,99 @@ def changePhotoPrompt(request):
 def changePassword(request):
     if request.session.get('student_id'):
         student = Student.objects.get(
-            student_id=request.session['student_id'])
+            student_id=request.session['student_id']
+        )
+
         if request.method == 'POST':
-            if student.password == request.POST['oldPassword']:
-                # New and confirm password check is done in the client side
-                student.password = request.POST['newPassword']
-                student.save()
-                messages.success(request, 'Password was changed successfully')
-                return redirect('/profile/' + str(student.student_id))
-            else:
+            old_password = request.POST.get('oldPassword', '')
+            new_password = request.POST.get('newPassword', '')
+            confirm_password = request.POST.get('confirmPassword', '')
+
+            valid_old_password, _ = _verify_custom_password(
+                old_password, student.password
+            )
+
+            if not valid_old_password:
                 messages.error(
-                    request, 'Password is incorrect. Please try again')
-                return redirect('/changePassword/')
-        else:
-            return render(request, 'main/changePassword.html', {'student': student})
-    else:
-        return redirect('std_login')
+                    request, 'Current password is incorrect. Please try again.'
+                )
+            elif len(new_password) < 8:
+                messages.error(
+                    request, 'New password must be at least 8 characters long.'
+                )
+            elif new_password != confirm_password:
+                messages.error(
+                    request, 'The new passwords do not match.'
+                )
+            elif _verify_custom_password(new_password, student.password)[0]:
+                messages.error(
+                    request, 'New password must be different from the current password.'
+                )
+            else:
+                student.password = make_password(new_password)
+                student.save(update_fields=['password'])
+                messages.success(
+                    request, 'Password was changed successfully.'
+                )
+                return redirect('profile', id=student.student_id)
+
+            return redirect('/changePassword/')
+
+        return render(
+            request, 'main/changePassword.html', {'student': student}
+        )
+
+    return redirect('std_login')
 
 
 def changePasswordFaculty(request):
     if request.session.get('faculty_id'):
         faculty = Faculty.objects.get(
-            faculty_id=request.session['faculty_id'])
+            faculty_id=request.session['faculty_id']
+        )
+
         if request.method == 'POST':
-            if faculty.password == request.POST['oldPassword']:
-                # New and confirm password check is done in the client side
-                faculty.password = request.POST['newPassword']
-                faculty.save()
-                messages.success(request, 'Password was changed successfully')
-                return redirect('/facultyProfile/' + str(faculty.faculty_id))
-            else:
-                print('error')
+            old_password = request.POST.get('oldPassword', '')
+            new_password = request.POST.get('newPassword', '')
+            confirm_password = request.POST.get('confirmPassword', '')
+
+            valid_old_password, _ = _verify_custom_password(
+                old_password, faculty.password
+            )
+
+            if not valid_old_password:
                 messages.error(
-                    request, 'Password is incorrect. Please try again')
-                return redirect('/changePasswordFaculty/')
-        else:
-            print(faculty)
-            return render(request, 'main/changePasswordFaculty.html', {'faculty': faculty})
-    else:
-        return redirect('std_login')
+                    request, 'Current password is incorrect. Please try again.'
+                )
+            elif len(new_password) < 8:
+                messages.error(
+                    request, 'New password must be at least 8 characters long.'
+                )
+            elif new_password != confirm_password:
+                messages.error(
+                    request, 'The new passwords do not match.'
+                )
+            elif _verify_custom_password(new_password, faculty.password)[0]:
+                messages.error(
+                    request, 'New password must be different from the current password.'
+                )
+            else:
+                faculty.password = make_password(new_password)
+                faculty.save(update_fields=['password'])
+                messages.success(
+                    request, 'Password was changed successfully.'
+                )
+                return redirect('profile_faculty', id=faculty.faculty_id)
+
+            return redirect('/changePasswordFaculty/')
+
+        return render(
+            request,
+            'main/changePasswordFaculty.html',
+            {'faculty': faculty},
+        )
+
+    return redirect('std_login')
 
 
 def changePhoto(request):
