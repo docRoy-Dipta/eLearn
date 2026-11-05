@@ -1,6 +1,7 @@
 from venv import create
 from django.db import models
 from main.models import Student, Course
+import json
 
 
 # Create your models here.
@@ -94,3 +95,81 @@ class StudentAnswer(models.Model):
 
     class Meta:
         unique_together = ('student', 'quiz', 'question')
+
+class QuizAttempt(models.Model):
+
+    STATUS_CHOICES = (
+        ('in_progress', 'In Progress'),
+        ('submitted', 'Submitted'),
+        ('legacy_complete', 'Legacy Complete'),
+        ('legacy_partial', 'Legacy Partial'),
+        ('legacy_review', 'Requires Review'),
+    )
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='quiz_attempts'
+    )
+
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='attempts'
+    )
+
+    # Serialized JSON containing answers and question snapshots.
+    answers = models.TextField(default='[]')
+
+    total_marks = models.IntegerField(default=0)
+    marks_obtained = models.IntegerField(default=0)
+
+    percentage = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        default=0
+    )
+
+    status = models.CharField(
+        max_length=24,
+        choices=STATUS_CHOICES,
+        default='submitted'
+    )
+
+    # Historical attempts may not have a reliable start time.
+    started_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+    time_taken_seconds = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Quiz Attempt'
+        verbose_name_plural = 'Quiz Attempts'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'quiz'],
+                name='unique_student_quiz_attempt'
+            )
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.student.name} - {self.quiz.title}'
+
+    def get_answers(self):
+        try:
+            return json.loads(self.answers or '[]')
+        except (TypeError, ValueError):
+            return []
+
+    def set_answers(self, answers):
+        self.answers = json.dumps(
+            answers,
+            ensure_ascii=False
+        )

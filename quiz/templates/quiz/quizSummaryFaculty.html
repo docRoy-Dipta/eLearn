@@ -42,7 +42,7 @@
          <div>
             <p><span class="material-symbols-outlined inline-icons me-2">
                groups
-               </span>Student Participated : <span class="fw-bold">{{ quiz.attempted_students}}/{{total_students}}</span>
+               </span>Student Participated : <span class="fw-bold">{{ attempted_students}}/{{total_students}}</span>
             </p>
             <p><span class="material-symbols-outlined inline-icons me-2">
                format_list_numbered
@@ -89,7 +89,7 @@
 </div>
 <div class="container p-3 shadow-sm rounded" id="allmarks">
    <div class="fw-bold">Marks of students</div>
-   {% if quiz.attempted_students %}
+   {% if attempted_students %}
 <div class="table-responsive">
    <table class="table text-center table-borderless" style="white-space: nowrap;">
       <thead class="border-bottom">
@@ -110,11 +110,16 @@
             <td class="fw-bold text-start">{{student.name}}</td>
             <td>{{student.student_id}}</td>
             {% if student.attempted %}
-            <td>{{student.total_marks_obtained}} / {{quiz.total_marks}}</td>
-            <td>{{student.submission_time}}</td>
+               {% if student.submission_time == 'In progress' %}
+                  <td>In progress</td>
+                  <td>Not submitted</td>
+               {% else %}
+                  <td class="fw-bold">{{student.total_marks_obtained}} / {{quiz.total_marks}}</td>
+                  <td>{{student.submission_time}}</td>
+               {% endif %}
             {% else %}
-            <td>Did not attempt</td>
-            <td>Did not attempt</td>
+               <td>Did not attempt</td>
+               <td>Did not attempt</td>
             {% endif %}
          </tr>
          {% endfor %}

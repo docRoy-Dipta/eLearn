@@ -153,3 +153,65 @@ th {
   );
   color: #482307;
 }
+/* Responsive course cards on student and faculty dashboards */
+.dashboard-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+  padding: 1rem 0 2rem;
+}
+
+.dashboard-course-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e6eaf1;
+  border-radius: 0.875rem;
+  box-shadow: 0 0.25rem 1rem rgba(20, 35, 60, 0.07);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.dashboard-course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.6rem 1.4rem rgba(20, 35, 60, 0.12);
+}
+
+.dashboard-course-card .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.dashboard-course-card .card-title {
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.dashboard-course-card .card-header,
+.dashboard-course-card .card-footer {
+  padding: 0.9rem 1rem;
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-course-grid {
+    gap: 1rem;
+    padding-top: 0.5rem;
+  }
+
+  .dashboard-course-card .card-body {
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-course-card {
+    transition: none;
+  }
+
+  .dashboard-course-card:hover {
+    transform: none;
+  }
+}

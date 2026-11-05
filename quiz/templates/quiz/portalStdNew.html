@@ -117,170 +117,347 @@
          </div>
       </div>
       <div class="row py-2">
-         {% comment %} Attempt button {% endcomment %}
          <div class="p-2 d-flex justify-content-center">
-            <button id="attempt" type="button" class="animate__animated animate__backInUp btn btn-sm btn-success">
-            Attempt now
-            </button>
+            <form action="{% url 'startQuiz' course.code quiz.id %}" method="post">
+               {% csrf_token %}
+               <button id="attempt" type="submit"
+                  class="animate__animated animate__backInUp btn btn-sm btn-success">
+                  Attempt now
+               </button>
+            </form>
          </div>
       </div>
       <div class="progress animate__animated animate__zoomIn">
-         <div id="progressBar" class="progress-bar progress-bar-striped" style="background-color:#0b6ab8" role="progressbar" aria-label="Success striped example" style="width: 75%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+         <div id="progressBar"
+            class="progress-bar progress-bar-striped"
+            style="background-color:#0b6ab8; width:0%"
+            role="progressbar"
+            aria-label="Quiz time progress"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100">
+         </div>
       </div>
    </div>
 </div>
+
+
 <div class="container">
-   <div id="questions">
-      <form action="{% url 'studentAnswer' course.code quiz.id %}" method="post">
-         {% csrf_token %}
-         {% for question in questions  %}
-         <div class="border border-warning mb-3 bg-warning bg-opacity-10 rounded p-3">
-            <div class="d-flex justify-content-between border-bottom mb-3">
-               <h6 class="fw-bold">Question {{forloop.counter}} of {{ total_questions }}</h6>
-               <h6 class="fw-bold">Marks : {{question.marks}}</h6>
+    <div id="questions" {% if not quiz_attempt_started %}class="d-none"{% endif %}>
+        <form id="quizAnswerForm"
+              action="{% url 'studentAnswer' course.code quiz.id %}"
+              method="post">
+
+            {% csrf_token %}
+
+            {% for question in questions  %}
+            <div class="border border-warning mb-3 bg-warning bg-opacity-10 rounded p-3">
+               <div class="d-flex justify-content-between border-bottom mb-3">
+                  <h6 class="fw-bold">Question {{forloop.counter}} of {{ total_questions }}</h6>
+                  <h6 class="fw-bold">Marks : {{question.marks}}</h6>
+               </div>
+               <label class="fw-bold mb-2"> {{question.question}} </label>
+               <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio"
+                        name="{{ question.id }}" value="A"
+                        {% if question.selected_answer == 'A' %}checked{% endif %}>
+                  <label class="form-check-label">
+                     A : {{ question.option1 }}
+                  </label>
+               </div>
+
+               <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio"
+                        name="{{ question.id }}" value="B"
+                        {% if question.selected_answer == 'B' %}checked{% endif %}>
+                  <label class="form-check-label">
+                     B : {{ question.option2 }}
+                  </label>
+               </div>
+
+               <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio"
+                        name="{{ question.id }}" value="C"
+                        {% if question.selected_answer == 'C' %}checked{% endif %}>
+                  <label class="form-check-label">
+                     C : {{ question.option3 }}
+                  </label>
+               </div>
+
+               <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio"
+                        name="{{ question.id }}" value="D"
+                        {% if question.selected_answer == 'D' %}checked{% endif %}>
+                  <label class="form-check-label">
+                     D : {{ question.option4 }}
+                  </label>
+               </div>
+               <input type="hidden" name="question" value="{{question.id}}">
+               <input type="hidden" name="quiz" value="{{quiz.id}}">
+               <input type="hidden" name="course" value="{{course.code}}">
             </div>
-            <label class="fw-bold mb-2"> {{question.question}} </label>
-            <div class="form-check mb-2">
-               <input class="form-check-input" type="radio" name="{{question.id}}" value="A">
-               <label class="form-check-label">
-               A : {{question.option1}}
-               </label>
+            {% endfor %}
+
+            <div class="d-flex justify-content-end bg-light p-2 border rounded mb-3">
+                <input id="subForm" type="submit"
+                       value="Submit"
+                       class="btn btn-sm btn-primary px-3">
             </div>
-            <div class="form-check mb-2">
-               <input class="form-check-input" type="radio" name="{{question.id}}" value="B">
-               <label class="form-check-label">
-               B : {{question.option2}}
-               </label>
-            </div>
-            <div class="form-check mb-2">
-               <input class="form-check-input" type="radio" name="{{question.id}}" value="C">
-               <label class="form-check-label">
-               C : {{question.option3}}
-               </label>
-            </div>
-            <div class="form-check mb-2">
-               <input class="form-check-input" type="radio" name="{{question.id}}" value="D">
-               <label class="form-check-label">
-               D : {{question.option4}}
-               </label>
-            </div>
-            <input type="hidden" name="question" value="{{question.id}}">
-            <input type="hidden" name="quiz" value="{{quiz.id}}">
-            <input type="hidden" name="course" value="{{course.code}}">
-         </div>
-         {% endfor %}
-         <div class="d-flex justify-content-end bg-light p-2 border rounded mb-3">
-            <input id="subForm" type="submit" value="Submit" class="btn btn-sm btn-primary px-3">
-         </div>
-      </form>
-   </div>
+
+        </form>
+    </div>
 </div>
+
+
 <script>
-$('.form-check-label').click(function(){
-   $(this).parent().find('input').prop('checked', true);
+document.addEventListener('DOMContentLoaded', function () {
+    const quizStarted = {{ quiz_attempt_started|yesno:"true,false" }};
+    const quizStart = new Date('{{ quiz.start|date:"c" }}').getTime();
+    const quizEnd = new Date('{{ quiz.end|date:"c" }}').getTime();
+
+    const questions = document.getElementById('questions');
+    const attemptButton = document.getElementById('attempt');
+    const startMessage = document.getElementById('start');
+    const startSection = document.getElementById('StartdaysSectionDV');
+    const endSection = document.getElementById('endTimerSection');
+    const quizForm = document.getElementById('quizAnswerForm');
+    const submitButton = document.getElementById('subForm');
+    const progressBar = document.getElementById('progressBar');
+
+    if (!quizForm) return;
+
+    let autosaveQueue = Promise.resolve();
+    let submissionStarted = false;
+    let allowNavigation = false;
+
+    const csrfToken = quizForm.querySelector(
+        '[name=csrfmiddlewaretoken]'
+    ).value;
+
+    function updateTimer(target, prefix) {
+        const distance = target - Date.now();
+
+        const days = Math.max(0, Math.floor(distance / 86400000));
+        const hours = Math.max(0, Math.floor((distance % 86400000) / 3600000));
+        const minutes = Math.max(0, Math.floor((distance % 3600000) / 60000));
+        const seconds = Math.max(0, Math.floor((distance % 60000) / 1000));
+
+        document.getElementById(prefix + 'days').textContent =
+            String(days).padStart(2, '0') + ' :';
+
+        document.getElementById(prefix + 'hours').textContent =
+            String(hours).padStart(2, '0') + ' :';
+
+        document.getElementById(prefix + 'minutes').textContent =
+            String(minutes).padStart(2, '0') + ' :';
+
+        document.getElementById(prefix + 'seconds').textContent =
+            String(seconds).padStart(2, '0');
+
+        return distance;
+    }
+
+    function updateProgress() {
+        if (!progressBar) return;
+
+        const duration = quizEnd - quizStart;
+        const elapsed = Date.now() - quizStart;
+
+        const percentage = duration > 0
+            ? Math.min(100, Math.max(0, (elapsed / duration) * 100))
+            : 100;
+
+        progressBar.style.width = percentage.toFixed(2) + '%';
+        progressBar.textContent =
+            'Time elapsed: ' + percentage.toFixed(2) + '%';
+
+        progressBar.setAttribute('aria-valuenow', percentage.toFixed(0));
+
+        progressBar.classList.remove(
+            'bg-warning', 'bg-danger', 'text-dark', 'fw-bold'
+        );
+
+        if (percentage > 95) {
+            progressBar.classList.add('bg-danger', 'fw-bold');
+        } else if (percentage > 85) {
+            progressBar.classList.add('bg-warning', 'text-dark', 'fw-bold');
+        }
+    }
+
+    function showActiveQuiz() {
+        questions.classList.remove('d-none');
+        if (attemptButton) attemptButton.classList.add('d-none');
+        if (startMessage) startMessage.classList.remove('d-none');
+        if (startSection) startSection.classList.add('d-none');
+        if (endSection) endSection.classList.remove('d-none');
+        if (document.querySelector('.progress')) {
+            document.querySelector('.progress').classList.remove('d-none');
+        }
+    }
+
+    function collectAnswers() {
+        const formData = new FormData(quizForm);
+        formData.set('action', 'autosave');
+        return formData;
+    }
+
+    function autosaveAnswers() {
+        if (submissionStarted || Date.now() >= quizEnd) {
+            return autosaveQueue;
+        }
+
+        const formData = collectAnswers();
+
+        autosaveQueue = autosaveQueue.catch(function () {
+            console.warn('Previous autosave failed. Retrying with the next change.');
+         }).then(async function () {
+
+            const response = await fetch(quizForm.action, {
+               method: 'POST',
+               body: formData,
+               headers: {
+                     'X-CSRFToken': csrfToken,
+                     'X-Requested-With': 'XMLHttpRequest'
+               }
+            });
+
+            if (!response.ok) {
+               throw new Error('Answer saving failed.');
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'submitted') {
+               allowNavigation = true;
+               window.location.reload();
+            }
+         });
+
+        return autosaveQueue;
+    }
+
+    async function submitQuiz() {
+    if (submissionStarted) return;
+
+    submissionStarted = true;
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.value = 'Submitting...';
+    }
+
+    try {
+        await autosaveQueue.catch(function (error) {
+            console.error('An autosave failed before submission:', error);
+         });
+
+        let actionInput = quizForm.querySelector('[name="action"]');
+
+        if (!actionInput) {
+            actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            quizForm.appendChild(actionInput);
+        }
+
+        actionInput.value = 'submit';
+
+        allowNavigation = true;
+        quizForm.submit();
+
+    } catch (error) {
+        submissionStarted = false;
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.value = 'Submit';
+        }
+
+        alert(
+            'Submission failed. Please check your connection and try again.'
+        );
+    }
+}
+
+    const progressSection = document.querySelector('.progress');
+const currentTime = Date.now();
+
+// Hide elements first. The correct elements will be shown below.
+if (attemptButton) attemptButton.classList.add('d-none');
+if (startMessage) startMessage.classList.add('d-none');
+if (questions) questions.classList.add('d-none');
+if (startSection) startSection.classList.add('d-none');
+if (endSection) endSection.classList.add('d-none');
+if (progressSection) progressSection.classList.add('d-none');
+
+if (quizStarted) {
+    showActiveQuiz();
+
+} else if (currentTime < quizStart) {
+    // Quiz has not started yet.
+    if (startSection) startSection.classList.remove('d-none');
+    updateTimer(quizStart, 'Start');
+
+} else if (currentTime < quizEnd) {
+    // Quiz is open, but the student has not started an attempt.
+    if (attemptButton) attemptButton.classList.remove('d-none');
+    if (startMessage) startMessage.classList.remove('d-none');
+
+} else {
+    // Quiz deadline has passed and no attempt was started.
+    if (attemptButton) attemptButton.classList.add('d-none');
+}
+
+    if (!quizStarted && Date.now() < quizStart) {
+        const startInterval = setInterval(function () {
+            const remaining = updateTimer(quizStart, 'Start');
+
+            if (remaining <= 0) {
+                clearInterval(startInterval);
+                if (startSection) startSection.classList.add('d-none');
+                if (startMessage) startMessage.classList.remove('d-none');
+                if (attemptButton) attemptButton.classList.remove('d-none');
+            }
+        }, 1000);
+    }
+
+    if (quizStarted) {
+        const endInterval = setInterval(function () {
+            const remaining = updateTimer(quizEnd, 'End');
+            updateProgress();
+
+            if (remaining <= 0) {
+                clearInterval(endInterval);
+                submitQuiz();
+            }
+        }, 1000);
+
+        updateTimer(quizEnd, 'End');
+        updateProgress();
+
+        quizForm.querySelectorAll('input[type="radio"]').forEach(
+            function (radio) {
+                radio.addEventListener('change', function () {
+                    autosaveAnswers().catch(function () {
+                        console.error('Autosave failed.');
+                    });
+                });
+            }
+        );
+
+        window.addEventListener('beforeunload', function (event) {
+            if (!allowNavigation && !submissionStarted) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
+
+        quizForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            submitQuiz();
+        });
+    }
+
 });
-
-$('#questions').hide();
-$('#attempt').hide();
-$('.progress').hide();
-$('#start').hide();
-$('#attempt').click(function(){
-    $('#questions').show(1000);
-    $('#attempt').hide(1000);
-   $('#start').hide(1000);
-}); 
-var countDownDate = new Date('{{ quiz.start|date:"D, d M Y H:i:s"}}').getTime();
-var x = setInterval(function() {
-var now = new Date().getTime();
-var distance = countDownDate - now;
-var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-if (days < 10) {
-   days = "0" + days;
-}
-if (hours < 10) {
-    hours = "0" + hours;
-}
-if (minutes < 10) {
-    minutes = "0" + minutes;
-}
-if (seconds < 10) {
-    seconds = "0" + seconds;
-}
-
-document.getElementById("Startdays").innerHTML = days+" :";
-document.getElementById("Starthours").innerHTML = hours+" :";
-document.getElementById("Startminutes").innerHTML = minutes+" :";
-document.getElementById("Startseconds").innerHTML = seconds;
-
-if (distance < 0) {
-   clearInterval(x);
-   $('#endTimerSection').removeClass('d-none');
-   $('#endTimerSection').addClass('animate__animated animate__zoomInDown');
-   $('#start').show();
-   $('#attempt').show();
-   $('.progress').show();
-   $('#StartdaysSectionDV').addClass('d-none');
-}
-}, 1000);
-
-var countDownDateEnd = new Date('{{ quiz.end|date:"D, d M Y H:i:s"}}').getTime();
-var x1 = setInterval(function() {
-var nowEnd = new Date().getTime();
-var distanceEnd = countDownDateEnd - nowEnd;
-var daysEnd = Math.floor(distanceEnd / (1000 * 60 * 60 * 24));
-var hoursEnd = Math.floor((distanceEnd % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-var minutesEnd = Math.floor((distanceEnd % (1000 * 60 * 60)) / (1000 * 60));
-var secondsEnd = Math.floor((distanceEnd % (1000 * 60)) / 1000);
-if (daysEnd < 10) {
-   daysEnd = "0" + daysEnd;
-}
-if (hoursEnd < 10) {
-    hoursEnd = "0" + hoursEnd;
-}
-if (minutesEnd < 10) {
-    minutesEnd = "0" + minutesEnd;
-}
-if (secondsEnd < 10) {
-    secondsEnd = "0" + secondsEnd;
-}
-document.getElementById("Enddays").innerHTML = daysEnd+" :";
-document.getElementById("Endhours").innerHTML = hoursEnd+" :";
-document.getElementById("Endminutes").innerHTML = minutesEnd+" :";
-document.getElementById("Endseconds").innerHTML = secondsEnd;
-
-if (distanceEnd < 0) {
-   clearInterval(x);
-   $('#subForm').click();
-   $('#subForm').hide();
-   $('#questions').hide();
-   $('#containerSec').addClass('d-none');
-}
-}, 1000);
-
-var interval = setInterval(function() {
-var currentTime = new Date().getTime();
-var deadline = new Date('{{ quiz.end|date:"D, d M Y H:i:s"}}').getTime();
-var timeLeft = deadline - currentTime;
-var timeLeft = timeLeft / 1000;
-var quizDuration = {{ quiz.duration_in_seconds }};
-var percentage = (timeLeft / quizDuration) * 100;
-var percentage = 100 - percentage;
-var percentage = percentage.toFixed(2);
-
-$('#progressBar').css('width', percentage + '%');
-$('#progressBar').text('Time elapsed: ' + percentage + '%');
-if (percentage > 85) {
-   $('#progressBar').removeClass('bg-danger');
-   $('#progressBar').addClass('bg-warning text-dark fw-bold');
-   }
-   if (percentage > 95) {
-   $('#progressBar').removeClass('bg-warning text-dark');
-   $('#progressBar').addClass('bg-danger fw-bold');
-   }
-}, 200);
-
 </script>
 {% endblock %}

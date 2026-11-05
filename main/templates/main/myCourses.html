@@ -25,10 +25,10 @@
       </div>
       {% if courses %}
       <!-- Course container -->
-      <div class="card_primary d-flex justify-content-center flex-wrap">
+      <div class="dashboard-course-grid">
          {% for courses in courses %}
          <!-- individual course starts -->
-         <div class="cd card text-center my-4 mx-4" style="width: 30rem !important;">
+         <div class="dashboard-course-card card text-center h-100">
             <div class="card-header text-light fw-bold">
                Dept. of {{courses.department}}
             </div>
