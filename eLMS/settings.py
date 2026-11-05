@@ -22,13 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_@876m&g2$*55!90p5cvqfsb)_f07n#33vhp2^3ggabcx#zyjr'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Security settings are supplied through environment variables.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 
-ALLOWED_HOSTS = ['.vercel.app','.now.sh', '127.0.0.1', 'localhost']
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").strip().lower() in {
+    "1", "true", "yes", "on"
+}
 
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -85,21 +91,15 @@ WSGI_APPLICATION = 'eLMS.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'railway',
-        'HOST': 'containers-us-west-201.railway.app',
-        'USER': 'postgres',
-        'PASSWORD': '9Y0dJNLhJ5M3Usi2Hn7b',
-        'PORT': '8075',
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("DB_NAME", ""),
+        "USER": os.environ.get("DB_USER", ""),
+        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "HOST": os.environ.get("DB_HOST", ""),
+        "PORT": os.environ.get("DB_PORT", ""),
     }
 }
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-#}
 
 
 # Password validation
